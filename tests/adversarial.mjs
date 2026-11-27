@@ -100,7 +100,7 @@ function cleanLaunch(m, slot, creator) {
   const { sent } = drive([batch(0, 100, events)]);
   const buys = sent.filter((o) => o.side === 'buy');
   check('S2 max 5 open positions: 6 clean launches -> at most 5 buys', buys.length === 5, `got ${buys.length}`);
-  check('S2 size: every buy is 0.02 SOL', buys.every((o) => BigInt(o.quote_lamports) === 20_000_000n));
+  check('S2 size: every buy is 0.05 SOL', buys.every((o) => BigInt(o.quote_lamports) === 50_000_000n));
 }
 
 // ---------------------------------------------------------------- S8 rug filters

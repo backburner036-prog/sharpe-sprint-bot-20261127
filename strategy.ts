@@ -37,6 +37,27 @@
 //   dev PnL is -0.012, so the edge is thin and spread over a few winners -
 //   stay small and let them pay.
 //
+// 2026-11-27 fix (stake 0.02 -> 0.05 SOL, the ONLY change from the 95a10c1
+// build): the per-tx priority+base fee is FIXED (105k lamports), so a bigger
+// stake shrinks the fee share. Measured, not assumed - walk-forward /
+// overfitting audit in BUILD-NOTES-sharpe-sprint-20261127-FIX.md:
+//   PBO (CSCV, S=8 blocks of 3h, 22 configs) = 0.90, mean w = 0.25;
+//   DSR(base) = 0.04, MinBTL 241 hourly obs vs 24 available - the dev
+//   window (1 day) cannot support ~92 trials; the dev edge is top-tail.
+//   WFE is negative both ways (first half loses, second half wins).
+//   Local block-surrogate median (amount-perturbation proxy of the
+//   server's block surrogates, 12 copies): stake 0.05 +0.021 SOL vs
+//   0.03 +0.011 vs base 0.02 +0.005; TP 1500 kept (TP 1200/1800 worse
+//   or tail-heavy). Plateau: dev Sharpe 0.171/0.160/0.158 at stake
+//   0.04/0.05/0.06 (+-20% stake -> Sharpe moves <8%).
+//   Rejected on the same proxy: reversion-tight (dev -0.07, median
+//   -0.005..-0.022), creator-buy=0 (18 mints < 20 guardrail), regime
+//   filter (inert - median early return of young coins is always > 0,
+//   prices rise mechanically after create), SL 12% (dev -0.004).
+//   The proxy is GENTLER than the server (base proxy median +0.005 vs
+//   server stress median -0.02), so a proxy pass does NOT prove a
+//   server pass - grade-local --stress 20 is the arbiter (see FIX notes).
+//
 // The whole decision is a pure function of the batches it has seen: no clock,
 // no dice, no network, no disk. Two runs on the same window produce identical
 // action logs.
@@ -90,7 +111,7 @@ export interface Tune {
 }
 
 export const TUNE: Tune = {
-  targetLamports: (2 * SOL) / 100,
+  targetLamports: (5 * SOL) / 100,
   smallestBuy: (5 * SOL) / 1000,
   entryLatest: 3,
   reserveLow: 5 * SOL,
